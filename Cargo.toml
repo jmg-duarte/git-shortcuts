@@ -3,8 +3,8 @@ name = "git-cmds-rs"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 git2 = "0.13"
 clap = { version = "3.1.0", features = ["derive"] }
+regex = "1"
+phf = { version = "0.10", features = ["macros"] }
