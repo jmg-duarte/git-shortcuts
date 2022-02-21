@@ -4,7 +4,7 @@ use std::{
 };
 
 use clap::Parser;
-use git2::{Commit, Repository, Signature, Tree};
+use git2::{Commit, ReferenceType, Repository, Signature, Tree};
 use phf::phf_map;
 use regex::Regex;
 
@@ -89,36 +89,42 @@ impl Display for Author {
     }
 }
 
-fn main() -> color_eyre::eyre::Result<()>{
+#[derive(thiserror::Error, Debug)]
+enum Error {
+    #[error("HEAD is not pointing to a branch.")]
+    HeadIsNotABranch,
+    #[error("{0} is not a known prefix.")]
+    UnknownPrefix(String),
+    #[error("{0} is not a valid branch name.")]
+    InvalidBranchName(String),
+}
+
+fn main() -> color_eyre::eyre::Result<()> {
     color_eyre::install()?;
-
-    let re = Regex::new("([A-Z])-?([0-9]+).*").unwrap();
-
+    let re = Regex::new("([A-Z])-?([0-9]+).*")?;
     let args = Args::parse();
 
     // NOTE: unsure how CWD can fail
-    let cwd = current_dir().unwrap();
+    let cwd = current_dir()?;
 
-    let repo = Repository::open(cwd).unwrap();
-    let author = Author::try_from(&repo).unwrap();
+    let repo = Repository::open(cwd)?;
+    let author = Author::try_from(&repo)?;
 
     println!("{}", author);
 
-    let head = repo.head().unwrap();
+    let head = repo.head()?;
 
-    // TODO do not panic, print error and exit
-    if !head.is_branch() {
-        panic!("not a branch");
-    }
-    let head_name = head.name().unwrap();
+    let branch_name = head.shorthand().map_or(Err(Error::HeadIsNotABranch), Ok)?;
 
-    // TODO: check if the string matches
-    let captures = re.captures(head_name).expect("Invalid branch name.");
+    let captures = re
+        .captures(branch_name)
+        .map_or(Err(Error::InvalidBranchName(branch_name.to_string())), Ok)?;
 
-    // TODO: give a decent error message
-    let team_name = TEAM_MAPPING.get(&captures[1]).unwrap();
+    let team_name = TEAM_MAPPING
+        .get(&captures[1])
+        .map_or(Err(Error::UnknownPrefix(captures[1].to_string())), Ok)?;
 
-    let issue_number = captures[2].parse::<u32>().unwrap();
+    let issue_number = captures[2].parse::<u32>()?;
 
     let message = FeatMessage {
         message: CommitMessage {
@@ -129,13 +135,20 @@ fn main() -> color_eyre::eyre::Result<()>{
         breaking: args.breaking,
     };
 
-    let tree_oid = repo.index().unwrap().write_tree().unwrap();
-    let tree = repo.find_tree(tree_oid).unwrap();
+    let tree_oid = repo.index()?.write_tree()?;
+    let tree = repo.find_tree(tree_oid)?;
 
-    let parent_commit = head.resolve().unwrap().peel_to_commit().unwrap();
+    let parent_commit = head.resolve()?.peel_to_commit()?;
 
-    let signature = &author.try_into().unwrap();
-    let _ = repo.commit(Some("HEAD"), signature, signature, &message.to_string(), &tree, &[&parent_commit]).unwrap();
+    let signature = &author.try_into()?;
+    let _ = repo.commit(
+        Some("HEAD"),
+        signature,
+        signature,
+        &message.to_string(),
+        &tree,
+        &[&parent_commit],
+    )?;
 
     println!("{}", message);
     Ok(())

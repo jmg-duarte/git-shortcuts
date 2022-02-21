@@ -9,3 +9,4 @@ clap = { version = "3.1.0", features = ["derive"] }
 regex = "1"
 phf = { version = "0.10", features = ["macros"] }
 color-eyre = "0.5"
+thiserror = "1.0"
