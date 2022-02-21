@@ -1,5 +1,5 @@
 [package]
-name = "git-cmds-rs"
+name = "git-cmds"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,3 +10,4 @@ regex = "1"
 phf = { version = "0.10", features = ["macros"] }
 color-eyre = "0.5"
 thiserror = "1.0"
+lazy_static = "1.4"
