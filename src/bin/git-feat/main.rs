@@ -4,9 +4,9 @@ use std::{
 };
 
 use clap::Parser;
-use git2::Repository;
-use regex::Regex;
+use git2::{Commit, Repository, Signature, Tree};
 use phf::phf_map;
+use regex::Regex;
 
 const BREAKING_CHAR: char = '!';
 
@@ -24,6 +24,7 @@ struct Args {
     breaking: bool,
 }
 
+/// General commit message.
 #[derive(Debug)]
 struct CommitMessage {
     team_name: String,
@@ -40,6 +41,7 @@ impl Display for CommitMessage {
     }
 }
 
+/// Feature commit message.
 #[derive(Debug)]
 struct FeatMessage {
     message: CommitMessage,
@@ -56,6 +58,37 @@ impl Display for FeatMessage {
     }
 }
 
+#[derive(Debug)]
+struct Author {
+    name: String,
+    email: String,
+}
+
+impl TryFrom<&git2::Repository> for Author {
+    type Error = git2::Error;
+
+    fn try_from(repo: &git2::Repository) -> Result<Self, Self::Error> {
+        Ok(Author {
+            name: repo.config()?.get_string("user.name")?,
+            email: repo.config()?.get_string("user.email")?,
+        })
+    }
+}
+
+impl<'a> TryInto<Signature<'a>> for Author {
+    type Error = git2::Error;
+
+    fn try_into(self) -> Result<Signature<'a>, Self::Error> {
+        Signature::now(&self.name, &self.email)
+    }
+}
+
+impl Display for Author {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} <{}>", self.name, self.email)
+    }
+}
+
 fn main() {
     let re = Regex::new("([A-Z])-?([0-9]+).*").unwrap();
 
@@ -65,6 +98,10 @@ fn main() {
     let cwd = current_dir().unwrap();
 
     let repo = Repository::open(cwd).unwrap();
+    let author = Author::try_from(&repo).unwrap();
+
+    println!("{}", author);
+
     let head = repo.head().unwrap();
 
     // TODO do not panic, print error and exit
@@ -89,6 +126,14 @@ fn main() {
         },
         breaking: args.breaking,
     };
+
+    let tree_oid = repo.index().unwrap().write_tree().unwrap();
+    let tree = repo.find_tree(tree_oid).unwrap();
+
+    let parent_commit = head.resolve().unwrap().peel_to_commit().unwrap();
+
+    let signature = &author.try_into().unwrap();
+    let _ = repo.commit(Some("HEAD"), signature, signature, &message.to_string(), &tree, &[&parent_commit]).unwrap();
 
     println!("{}", message);
 }
