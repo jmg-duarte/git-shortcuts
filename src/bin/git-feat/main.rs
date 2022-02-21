@@ -89,7 +89,9 @@ impl Display for Author {
     }
 }
 
-fn main() {
+fn main() -> color_eyre::eyre::Result<()>{
+    color_eyre::install()?;
+
     let re = Regex::new("([A-Z])-?([0-9]+).*").unwrap();
 
     let args = Args::parse();
@@ -111,7 +113,7 @@ fn main() {
     let head_name = head.name().unwrap();
 
     // TODO: check if the string matches
-    let captures = re.captures(head_name).unwrap();
+    let captures = re.captures(head_name).expect("Invalid branch name.");
 
     // TODO: give a decent error message
     let team_name = TEAM_MAPPING.get(&captures[1]).unwrap();
@@ -136,4 +138,5 @@ fn main() {
     let _ = repo.commit(Some("HEAD"), signature, signature, &message.to_string(), &tree, &[&parent_commit]).unwrap();
 
     println!("{}", message);
+    Ok(())
 }
