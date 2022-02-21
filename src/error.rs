@@ -6,4 +6,6 @@ pub enum Error {
     UnknownPrefix(String),
     #[error("{0} is not a valid branch name.")]
     InvalidBranchName(String),
+    #[error("No staged changes were found.")]
+    NoStagedChanges,
 }

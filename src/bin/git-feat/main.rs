@@ -1,5 +1,6 @@
 use git_shortcuts::{
-    commit::{Author, CommitMessage, FeatMessage},
+    check_staged_changes, commit,
+    commit::{CommitMessage, FeatMessage},
     error::Error,
     extract_from_branch,
 };
@@ -29,10 +30,8 @@ fn main() -> Result<()> {
 
     // NOTE: unsure how CWD can fail
     let repo = Repository::open(current_dir()?)?;
-    let author = Author::try_from(&repo)?;
 
     let head = repo.head()?;
-
     let branch_name = head.shorthand().map_or(Err(Error::HeadIsNotABranch), Ok)?;
     let (team_name, issue_number) = extract_from_branch(branch_name)?;
 
@@ -44,21 +43,10 @@ fn main() -> Result<()> {
         },
         breaking: args.breaking,
     };
-
-    let tree_oid = repo.index()?.write_tree()?;
-    let tree = repo.find_tree(tree_oid)?;
-
-    let parent_commit = head.resolve()?.peel_to_commit()?;
-
-    let signature = &author.try_into()?;
-    repo.commit(
-        Some("HEAD"),
-        signature,
-        signature,
-        &message.to_string(),
-        &tree,
-        &[&parent_commit],
-    )?;
+    // Check for staged changes
+    check_staged_changes(&repo)?;
+    // Commit changes
+    commit(&repo, &message.to_string())?;
 
     if args.verbose {
         println!("{}", message);
