@@ -2,6 +2,14 @@
 name = "git-shortcuts"
 version = "0.1.0-rc0"
 edition = "2021"
+authors = ["José Duarte <duarte.gmj@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Git shortcuts."
+repository = "https://github.com/jmg-duarte/git-shortcuts"
+documentation = "https://docs.rs/git-shortcuts"
+readme = "README.md"
+categories = ["command-line-utilities", "development-tools"]
+keywords = ["git"]
 
 [dependencies]
 git2 = "0.13"
