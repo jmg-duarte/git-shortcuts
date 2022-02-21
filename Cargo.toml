@@ -1,6 +1,6 @@
 [package]
-name = "git-cmds"
-version = "0.1.0"
+name = "git-shortcuts"
+version = "0.1.0-rc0"
 edition = "2021"
 
 [dependencies]

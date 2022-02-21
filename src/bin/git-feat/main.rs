@@ -1,4 +1,4 @@
-use git_cmds::{
+use git_shortcuts::{
     commit::{Author, CommitMessage, FeatMessage},
     error::Error,
     extract_from_branch,
@@ -18,6 +18,9 @@ struct FeatArgs {
     /// Whether this feature is a breaking change.
     #[clap(short, long)]
     breaking: bool,
+    /// Whether to be verbose or not.
+    #[clap(short, long)]
+    verbose: bool,
 }
 
 fn main() -> Result<()> {
@@ -48,7 +51,7 @@ fn main() -> Result<()> {
     let parent_commit = head.resolve()?.peel_to_commit()?;
 
     let signature = &author.try_into()?;
-    let _ = repo.commit(
+    repo.commit(
         Some("HEAD"),
         signature,
         signature,
@@ -57,6 +60,9 @@ fn main() -> Result<()> {
         &[&parent_commit],
     )?;
 
-    println!("{}", message);
+    if args.verbose {
+        println!("{}", message);
+    }
+
     Ok(())
 }
