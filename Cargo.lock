@@ -175,7 +175,7 @@ checksum = "78cc372d058dcf6d5ecd98510e7fbc9e5aec4d21de70f65fea8fecebcd881bd4"
 
 [[package]]
 name = "git-shortcuts"
-version = "0.1.0-rc0"
+version = "0.1.1-rc0"
 dependencies = [
  "clap",
  "color-eyre",

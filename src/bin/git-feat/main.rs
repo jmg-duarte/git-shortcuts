@@ -19,9 +19,9 @@ struct FeatArgs {
     /// Whether this feature is a breaking change.
     #[clap(short, long)]
     breaking: bool,
-    /// Whether to be verbose or not.
+    /// Silence messages.
     #[clap(short, long)]
-    verbose: bool,
+    quiet: bool,
 }
 
 fn main() -> Result<()> {
@@ -48,7 +48,7 @@ fn main() -> Result<()> {
     // Commit changes
     commit(&repo, &message.to_string())?;
 
-    if args.verbose {
+    if !args.quiet {
         println!("{}", message);
     }
 

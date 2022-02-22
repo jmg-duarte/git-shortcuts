@@ -5,13 +5,13 @@ A collection of git shortcuts. Currently oriented towards personal use.
 ## Installation
 
 ```
-cargo install git-shortcuts --version 0.1.0-rc0
+cargo install git-shortcuts --version 0.1.1-rc0
 ```
 
 ## Usage
 ```
-git feat [-b] <message>
-git fix <message>
+git feat [-b] [-s] <message>
+git fix [-s] <message>
 ```
 
 #### License

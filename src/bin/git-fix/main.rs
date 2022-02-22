@@ -16,9 +16,9 @@ use git2::Repository;
 struct FixArgs {
     /// Commit message.
     message: String,
-    /// Whether to be verbose or not.
+    /// Silence messages.
     #[clap(short, long)]
-    verbose: bool,
+    quiet: bool,
 }
 
 fn main() -> Result<()> {
@@ -45,7 +45,7 @@ fn main() -> Result<()> {
     // Commit changes
     commit(&repo, &message.to_string())?;
 
-    if args.verbose {
+    if !args.quiet {
         println!("{}", message);
     }
 
